@@ -17,7 +17,7 @@ if (Metric==Mean difference){
     if (Metric==Standard mean difference){
 #(SMD * 1.81)*2.71828183 <- OR} else{
       if (Metric== OR){
-        break}
+        break} #maybe not to break it bit I wnat it to skip all OR (O this level I will performe my analysis) 
       
 ## calculatin the SD from my new OR 
 #odds.ratio(OR, level=0.95,...) 
@@ -41,7 +41,7 @@ for(i in 1: #depends how big my file is)) {
                 method.tau = "PM",  #here to choose apropriate method to calculaze tau2!!
                 hakn = TRUE,
                 title = "Test.index")
-summary(m.bin.1)} else {
+summary(m.bin.1)} else if {
       if (systematic_review_number ==2){
      m.bin.2<- metabin(event.e = events_t, 
                 n.e = n_partc_t_arm,
@@ -57,7 +57,7 @@ summary(m.bin.1)} else {
                 method.tau = "PM",  #here to choose apropriate method to calculaze tau2!!
                 hakn = TRUE,
                 title = "Test.index")
-summary(m.bin.2)   } else{ ....# depents how many systematic reviews will be included  
+summary(m.bin.2)   } else { ....# depents how many systematic reviews will be included  # else is the last one, otherwise else if!!
   #loops with data (repeat) 
 #repeat 
 #{
