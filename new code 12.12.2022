@@ -1,0 +1,227 @@
+library(metafor)
+library(meta)
+library(dmetar)
+library(tidyverse)
+library(dplyr)
+
+my_data<- X17_12_2022_all_data
+duplicated(my_data)
+unique(my_data)
+glimpse(my_data)
+
+########Ma if I have to transform SMD into OR##############3
+#SE(OR) = OR * sqrt((1/a)+(1/b)+(1/c)+(1/d))
+#SD(OR) = SE(OR) * 1.96
+
+my_data <- my_data %>% 
+  mutate(SMD_into_lnOR = effects_es_conti * 1.81)
+
+my_data <- my_data %>%
+  mutate(SMD_into_OR = 2.71828183^(SMD_into_lnOR))
+
+my_data <- my_data %>%
+  mutate(SE_OR = SMD_into_OR * sqrt((1/effects_nb_a)+(1/effects_nb_b)))
+
+my_data <- my_data %>% 
+  mutate(SD_OR = SE_OR *1.96)
+
+##################################Acupuncture or acupressure for pain management during labour###########################################
+#########MA if I have SMD###############
+
+plot_acupressure_obj_1.1 <-  subset(my_data, systematic_reviews_title == "Acupuncture or acupressure for pain management during labour" &
+                                      effects_metric == "Standard Mean difference")
+
+plot_acupressure_obj_1.1
+
+plot_accupresure_obj_old<- metacont(n.e = effects_nb_a,
+           mean.e = effects_es_conti_arm_a,
+           sd.e = effects_sd_conti_arm_a,
+           n.c = effects_nb_b,
+           mean.c = effects_es_conti_arm_b,
+           sd.c = effects_sd_conti_arm_b,
+           studlab = trials_author,
+           data = plot_acupressure_obj_1.1,
+           sm = "SMD",
+           method.smd = "Hedges",
+           fixed = FALSE,
+           random = TRUE,
+           method.tau = "REML",
+           hakn = TRUE,
+           title = "Acupuncture or acupressure for pain management during labour
+           Length of labour")
+
+summary(plot_accupresure_obj_old)
+
+#Forest Plot
+
+forest.meta(plot_accupresure_obj_old)
+#sortvar = TE,    #order the results by effect size
+#predict = TRUE, 
+print.tau2 = FALSE,
+#leftcols = c("TE", "seTE")
+#leftlabs = c("Author")
+
+forest.meta(plot_accupresure_obj_old, layout = "RevMan5")
+
+
+######new MS with new OR (from SMD)#############
+plot_acupressure_obj_new <-  subset(my_data, systematic_reviews_title == "Acupuncture or acupressure for pain management during labour" &
+                                      effects_metric == "Standard Mean difference")
+
+plot_accupresure_obj_new_1.1<- metagen(TE = SMD_into_lnOR,
+                                   seTE = SE_OR,
+                                   studlab = trials_author,
+                                   data = plot_acupressure_obj_1.1,
+                                   sm = "OR",
+                                   fixed = FALSE,
+                                   random = TRUE,
+                                   method.tau = "REML",
+                                   hakn = TRUE,
+                                   title = "Acupuncture or acupressure for pain management during labour
+           Length of labour")
+my_data$SMD_into_lnOR
+summary(plot_accupresure_obj_new_1.1)
+
+#Forest Plot
+
+forest.meta(plot_accupresure_obj_old)
+#sortvar = TE,    #order the results by effect size
+#predict = TRUE, 
+print.tau2 = FALSE,
+#leftcols = c("TE", "seTE")
+leftlabs = c("Author" ="trial_title_1")
+
+forest.meta(plot_accupresure_obj_new_1.1, layout = "RevMan5")
+
+##########MA if I have mean difference (not standarized)#################33
+plot_acupressure_QoL_old <-  subset(my_data, systematic_reviews_title == "Acupuncture or acupressure for pain management during labour" &
+                                      effects_metric == "Mean Difference")
+plot_acupressure_QoL_old
+plot_acupressure_QoL_old_1 <- metacont(n.e = effects_nb_a,
+                                       mean.e = effects_es_conti_arm_a,
+                                       sd.e = effects_sd_conti_arm_a,
+                                       n.c = effects_nb_b,
+                                       mean.c = effects_es_conti_arm_b,
+                                       sd.c = effects_sd_conti_arm_b,
+                   studlab = trials_author,
+                   data = plot_acupressure_QoL_old,
+                   sm = "MD",
+                   method.smd = "Hedges",
+                   fixed = FALSE,
+                   random = TRUE,
+                   method.tau = "REML",
+                   hakn = TRUE,
+                   title = "Acupuncture or acupressure for pain management during labour
+ pain intensity")
+
+#Forest Plot
+
+forest.meta(plot_acupressure_QoL_old_1)
+#sortvar = TE,    #order the results by effect size
+#predict = TRUE, 
+print.tau2 = FALSE,
+#leftcols = c("TE", "seTE")
+leftlabs = c("Author" ="trial_title_1")
+
+forest.meta(plot_acupressure_QoL_old_1, layout = "RevMan5")
+
+
+#################Surgical techniques for uterine incision and uterine closure at the time of caesarean section##########################
+
+plot_surgical_techniques_Obj_old <-  subset(my_data, systematic_reviews_title == "Surgical techniques for uterine incision and uterine closure at the time of caesarean section" &
+                                      effects_outcome == "Postoperative febrile morbidity (including endometritis)")
+                                      
+plot_surgical_tech_obj_old <- metabin(event.e = effects_event_a, 
+                       n.e = effects_nb_a,
+                       event.c = effects_event_b,
+                       n.c = effects_nb_b,
+                      #studlab = trials_author,
+                      data = plot_surgical_techniques_Obj_old,
+                      sm = "RR",      # effect size metric, od for odds ratio amd RR for risk ratio
+                      method = "MH",  #Mantel-Haenszel
+                      MH.exact = TRUE,#indicating that we do not want that a continuity correction is used for the Mantel-Haenszel method
+                      fixed = FALSE,
+                      random = TRUE,
+                      method.tau = "PM",  #here to choose apropriate method to calculaze tau2!!
+                      hakn = TRUE,
+                      title = "Surgical techniques for uterine incision and uterine closure at the time of caesarean section Postoperative febrile morbidity (including endometritis)")
+summary(plot_surgical_tech_obj_old)
+
+m.bin_update <- update.meta(plot_surgical_tech_obj_old, 
+                            method.tau = "REML")
+
+#Forest Plot
+
+forest.meta(mplot_surgical_tech_obj_old)
+sortvar = TE,    #order the results by effect size
+predict = TRUE, 
+print.tau2 = FALSE,
+leftcols = c("TE", "seTE")
+leftlabs = c("Author" ='trial_title_1', "g", "SE")
+
+forest.meta(plot_surgical_tech_obj_old, layout = "RevMan5")
+
+plot_surgical_tech_obj_old <- metabin(event.e = effects_event_a, 
+                       n.e = effects_nb_a,
+                       event.c = effects_event_b,
+                       n.c = effects_nb_b,
+                      #studlab = trials_author,
+                      data = plot_surgical_techniques_Obj_old,
+                      sm = "OR",      # effect size metric, od for odds ratio amd RR for risk ratio
+                      method = "MH",  #Mantel-Haenszel
+                      MH.exact = TRUE,#indicating that we do not want that a continuity correction is used for the Mantel-Haenszel method
+                      fixed = FALSE,
+                      random = TRUE,
+                      method.tau = "PM",  #here to choose apropriate method to calculaze tau2!!
+                      hakn = TRUE,
+                      title = "Surgical techniques for uterine incision and uterine closure at the time of caesarean section Postoperative febrile morbidity (including endometritis)")
+summary(plot_surgical_tech_obj_old)
+
+m.bin_update <- update.meta(plot_surgical_tech_obj_old, 
+                            method.tau = "REML")
+
+#Forest Plot
+
+forest.meta(mplot_surgical_tech_obj_old)
+sortvar = TE,    #order the results by effect size
+predict = TRUE, 
+print.tau2 = FALSE,
+leftcols = c("TE", "seTE")
+leftlabs = c("Author" ='trial_title_1', "g", "SE")
+
+forest.meta(plot_surgical_tech_obj_old, layout = "RevMan5")###########
+
+
+m.bin.obj<- metabin(event.e = nr_event_3, 
+                      n.e = Nr_intervention_3,
+                      event.c = nr_cont_3,
+                      n.c = Nr_control_3,
+                      #studlab = Can Joel-Cohen incision and single layer reconstruction reduce cesarean section morbidity?,
+                      data = testing_data,
+                      sm = "RR",      # effect size metric, od for odds ratio amd RR for risk ratio
+                      method = "MH",  #Mantel-Haenszel
+                      MH.exact = TRUE,#indicating that we do not want that a continuity correction is used for the Mantel-Haenszel method
+                      fixed = FALSE,
+                      random = TRUE,
+                      method.tau = "PM",  #here to choose apropriate method to calculaze tau2!!
+                      hakn = TRUE,
+                      title = "Test.index")
+summary(m.bin.obj)
+
+m.bin.update.obj <- update.meta(m.bin.obj, 
+                            method.tau = "REML")
+
+#Forest Plot
+
+forest.meta(m.bin.update.obj)
+sortvar = TE,    #order the results by effect size
+predict = TRUE, 
+print.tau2 = FALSE,
+leftcols = c("TE", "seTE")
+leftlabs = c("Author" ='trial_title_1', "g", "SE")
+
+forest.meta(m.bin.update.obj, layout = "RevMan5")
+
+                                      
+
+
